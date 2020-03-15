@@ -1,3 +1,10 @@
 vendor
 .DS_Store
 .vs-code
+.DS_Store
+node_modules
+dist
+/vendor
+/protected/vendor
+setup.cfg
+.vscode
