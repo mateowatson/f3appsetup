@@ -15,7 +15,9 @@ $f3->set('DB', new \DB\SQL(
         ';dbname='.$f3->get('DB_NAME'),
     $f3->get('DB_USER'),
     $f3->get('DB_PASSWORD'),
-    [\PDO::MYSQL_ATTR_INIT_COMMAND=>'SET NAMES utf8mb4;']
+    [\PDO::MYSQL_ATTR_INIT_COMMAND=>'
+        SET NAMES utf8mb4;
+    ']
 ));
 // Initiate session using sessions sql table, store to global f3 variable 'CSRF'
 new \DB\SQL\Session($f3->get('DB'), 'sessions', TRUE, NULL, 'CSRF');
