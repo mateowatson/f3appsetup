@@ -1,5 +1,6 @@
 <?php
 namespace F3StarterApp\Controller;
+
 class Main {
     protected $f3;
     protected $params;

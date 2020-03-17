@@ -1,5 +1,6 @@
 <?php
 namespace F3StarterApp\Model;
-class Todo {
+
+class Team {
     
 }

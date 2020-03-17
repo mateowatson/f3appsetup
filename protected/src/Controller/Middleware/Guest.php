@@ -1,6 +1,7 @@
 <?php
 namespace F3StarterApp\Controller\Middleware;
-class User extends \F3StarterApp\Controller\Main {
+
+class Guest extends \F3StarterApp\Controller\Main {
     public function beforeRoute() {
         parent::beforeRoute();
     }

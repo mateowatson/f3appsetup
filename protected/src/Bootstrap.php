@@ -24,7 +24,7 @@ new \DB\SQL\Session($f3->get('DB'), 'sessions', TRUE, NULL, 'CSRF');
 // Autoload views templates
 $f3->set('UI', ROOT_DIR . '/src/views/');
 // Autoload everything in the src/autoload directory, using f3's autoloader
-$f3->set('AUTOLOAD', ROOT_DIR . '/src/classes/');
+//$f3->set('AUTOLOAD', ROOT_DIR . '/src/classes/');
 // Set debug level based on environment
 if($f3->get('SITE_ENV') === 'development') {
     $f3->set('DEBUG',3);

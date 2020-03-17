@@ -1,5 +1,10 @@
 {
     "require": {
         "bcosca/fatfree": "^3.7"
-    }
+    },
+    "autoload": {
+        "psr-4": {
+          "F3StarterApp\\": "src/"
+        }
+      }
 }
