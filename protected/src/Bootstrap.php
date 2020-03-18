@@ -53,14 +53,15 @@ if($f3->get('SITE_TIMEZONE')) {
     define('TIMEZONE', 'America/Chicago');
 }
 // date_default_timezone_set(TIMEZONE);
-// $tz_now = new DateTime();
-// $tz_mins = $tz_now->getOffset() / 60;
-// $tz_sgn = ($tz_mins < 0 ? -1 : 1);
-// $tz_mins = abs($tz_mins);
-// $tz_hrs = floor($tz_mins / 60);
-// $tz_mins -= $tz_hrs * 60;
-// $tz_offset = sprintf('%+d:%02d', $tz_hrs*$tz_sgn, $tz_mins);
-// $db = $f3->get('DB');
-// $db->exec("SET time_zone='$tz_offset';");
+$tz_now = new DateTime();
+$tz_mins = $tz_now->getOffset() / 60;
+$tz_sgn = ($tz_mins < 0 ? -1 : 1);
+$tz_mins = abs($tz_mins);
+$tz_hrs = floor($tz_mins / 60);
+$tz_mins -= $tz_hrs * 60;
+$tz_offset = sprintf('%+d:%02d', $tz_hrs*$tz_sgn, $tz_mins);
+$db = $f3->get('DB');
+$db->exec("SET time_zone='$tz_offset';");
+$f3->set('view_errors', json_decode($f3->get('SESSION.view_errors')) ? : array());
 // Run f3
 $f3->run();
