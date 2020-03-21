@@ -68,6 +68,12 @@ class User {
                 'The password must be at least 8 characters long.'
             ));
         }
+        if($this->email &&
+            filter_var($this->email, FILTER_VALIDATE_EMAIL) === FALSE) {
+            array_push($this->validate_new_user_errors, _(
+                'Not a valid email address.'
+            ));
+        }
         if(count($this->validate_new_user_errors))
             return false;
         return true;
