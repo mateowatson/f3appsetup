@@ -12,7 +12,7 @@ class Signup extends Middleware\Guest {
         $user = new User(
             $this->request['username'],
             $this->request['password'],
-            $this->request['email']
+            isset($this->request['email']) ? $this->request['email'] : null
         );
 
         if(!$user->validateNewUser()) {

@@ -9,6 +9,7 @@ class User {
     private $validate_new_user_errors = array();
     private $signup_errors = array();
     private $send_email_verification_code_errors = array();
+    private $login_errors = array();
     private $email_verification_hash;
     private $f3;
 
@@ -112,18 +113,15 @@ class User {
             $password
         );
 
-        $site_name = $f3->get('SITE_NAME');
-        $site_url = $f3->get('SITE_URL');
+        $site_name = $this->f3->get('SITE_NAME');
+        $site_url = $this->f3->get('SITE_URL');
 
-        $smtp->set('From', '<'.$this->username.'>');
+        $smtp->set('From', '<'.$username.'>');
         $smtp->set('To', '<'.$this->email.'>');
         $smtp->set('Subject', $site_name.' email verification');
 
         // creates 12 digit random string
         $email_verification = bin2hex( random_bytes(6) );
-
-        $email_verification_hash = password_hash($email_verification, PASSWORD_DEFAULT);
-
 
         $message = <<<MESSAGE
 Hello $this->username,
@@ -146,22 +144,22 @@ The $site_name Team
 MESSAGE;
 
         if($smtp->send($message)) {
-            $this->email_verification_hash = $email_verification_hash;
+            $this->email_verification_hash = password_hash($email_verification, PASSWORD_DEFAULT);
             $user = new \DB\SQL\Mapper($this->db, 'users');
-            $user->load('username=?', $this->username);
+            $user->load(array('username=?', $this->username));
             $user->email_verification_hash = $this->email_verification_hash;
             $user->save();
             return true;
         }
 
-        array_push($this->validate_new_user_errors, _(
+        array_push($this->send_email_verification_code_errors, _(
             'Could not send email verification.'
         ));
         return false;
     }
 
     public function getSendEmailVerificationCodeErrors() {
-        return $this->email_verification_hash;
+        return $this->send_email_verification_code_errors;
     }
 
     public function getEmailVerificationHash() {
@@ -189,9 +187,35 @@ MESSAGE;
         return $this->signup_errors;
     }
 
+    public function login() {
+        if(!$this->username || !$this->password) {
+            array_push($this->login_errors, _(
+                'Username and password are required.'
+            ));
+            return false;
+        }
+
+        $user = new \DB\SQL\Mapper($this->db, 'users');
+        $user->load(array('username=?', $this->username));
+
+        if(!password_verify($this->password, $user->password)) {
+            array_push($this->login_errors, _(
+                'The username and password you entered are incorrect.'
+            ));
+            return false;
+        }
+
+        $this->f3->set('SESSION.username', $user->username);
+        return true;
+    }
+
+    public function getLoginErrors() {
+        return $this->login_errors;
+    }
+
     public function delete() {
         $user = new \DB\SQL\Mapper($this->db, 'users');
-        $user->load('username=?', $this->username);
+        $user->load(array('username=?', $this->username));
         $user->erase();
     }
 }
