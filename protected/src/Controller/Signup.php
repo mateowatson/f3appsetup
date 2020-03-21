@@ -25,9 +25,17 @@ class Signup extends Middleware\Guest {
             $this->reroute('/signup');
         }
 
-        $this->f3->merge('session_confirmations', _(
+        if($this->f3->get('USERSIGNUP') === 'email' || $this->request['email']) {
+            if(!$user->sendEmailVerificationCode()) {
+                $this->f3->merge('session_errors', $user->getSendEmailVerificationCodeErrors(), true);
+                $user->delete();
+                $this->reroute('/signup');
+            }
+        }
+
+        $this->f3->merge('session_confirmations', array(_(
             'Thank you for signing up! You may now login.'
-        ), true);
-        $this->reroute('/signup');
+        )), true);
+        $this->reroute('/login');
     }
 }

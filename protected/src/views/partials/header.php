@@ -9,3 +9,19 @@
     <link rel="stylesheet" href="<?php echo $SITE_URL; ?>/css/app.css">
 </head>
 <body>
+
+<?php if($view_errors): ?>
+<div role="alert">
+    <?php foreach($view_errors as $error): ?>
+    <p><?php echo $error; ?></p>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
+
+<?php if($view_confirmations): ?>
+<div role="alert">
+    <?php foreach($view_confirmations as $confirmation): ?>
+    <p><?php echo $confirmation; ?></p>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
