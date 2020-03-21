@@ -1,5 +1,5 @@
 <?php
-namespace F3StarterApp\Controller;
+namespace F3AppSetup\Controller;
 
 class Dashboard extends Middleware\User {
     public function show() {

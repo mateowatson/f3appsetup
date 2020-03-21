@@ -1,7 +1,7 @@
 <?php
-namespace F3StarterApp\Controller;
+namespace F3AppSetup\Controller;
 
-use F3StarterApp\Model\User;
+use F3AppSetup\Model\User;
 
 class Signup extends Middleware\Guest {
     public function show() {

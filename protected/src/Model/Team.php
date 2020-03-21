@@ -1,5 +1,5 @@
 <?php
-namespace F3StarterApp\Model;
+namespace F3AppSetup\Model;
 
 class Team {
     

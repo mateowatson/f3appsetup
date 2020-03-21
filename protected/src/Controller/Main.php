@@ -1,5 +1,5 @@
 <?php
-namespace F3StarterApp\Controller;
+namespace F3AppSetup\Controller;
 
 class Main {
     protected $f3;
@@ -30,12 +30,7 @@ class Main {
     }
 
     public function afterRoute() {
-        // $this->f3->set('SESSION.errors',
-        //     json_encode($this->f3->get('session_errors'))
-        // );
-        // $this->f3->set('SESSION.confirmations',
-        //     json_encode($this->f3->get('session_confirmations'))
-        // );
+        
     }
 
     public function reroute($path) {
