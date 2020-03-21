@@ -3,6 +3,13 @@
 define('ROOT_DIR', dirname(__DIR__));
 // Autoload vendor classes, aka f3's classes and any others from composer
 require ROOT_DIR . '/vendor/autoload.php';
+// Set language to English
+putenv('LC_ALL=en_EN');
+setlocale(LC_ALL, 'en_EN');
+// Specify location of translation tables
+bindtextdomain("f3appsetup", ROOT_DIR . '/vendor/locale');
+// Choose domain
+textdomain("f3appsetup");
 // Instantiate f3 and save the instance to a variable to continue bootstrapping
 $f3 = \Base::instance();
 // Configure setup global variables and routes

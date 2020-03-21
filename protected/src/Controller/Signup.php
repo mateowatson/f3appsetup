@@ -16,7 +16,18 @@ class Signup extends Middleware\Guest {
         );
 
         if(!$user->validateNewUser()) {
-            $this->f3->push('view_errors', $user->getValidationErrors());
+            $this->f3->merge('session_errors', $user->getValidateNewUserErrors(), true);
+            $this->reroute('/signup');
         }
+
+        if(!$user->signup()) {
+            $this->f3->merge('session_errors', $user->getSignupErrors(), true);
+            $this->reroute('/signup');
+        }
+
+        $this->f3->merge('session_confirmations', _(
+            'Thank you for signing up! You may now login.'
+        ), true);
+        $this->reroute('/signup');
     }
 }
