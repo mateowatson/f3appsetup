@@ -13,6 +13,8 @@ class Main {
     }
 
     public function beforeRoute() {
+        $this->preventCSRF();
+        // Get previous session errors/confirmations
         $this->f3->set(
             'view_errors',
             json_decode($this->f3->get('SESSION.errors'))
@@ -41,5 +43,30 @@ class Main {
             json_encode($this->f3->get('session_confirmations'))
         );
         $this->f3->reroute($path);
+    }
+
+    public function preventCSRF() {
+        $this->generateCSRF();
+        $request_method = isset($this->f3->get('SERVER')['REQUEST_METHOD']) ?
+            $this->f3->get('SERVER')['REQUEST_METHOD'] : '';
+        if(strcasecmp($request_method, 'POST') !== 0)
+            return;
+        if($this->f3->get('SESSION.csrf') !== $this->request['csrf']) {
+            $this->f3->merge('session_errors', array(_(
+                'Form entry was not successful. Try again or contact site administrator.'
+            )), true);
+            $this->reroute($this->f3->get('SERVER')['REQUEST_URI']);
+        }
+    }
+
+    public function generateCSRF() {
+        $request_method = isset($this->f3->get('SERVER')['REQUEST_METHOD']) ?
+            $this->f3->get('SERVER')['REQUEST_METHOD'] : '';
+        if(strcasecmp($request_method, 'GET') !== 0)
+            return;
+        $session_csrf = $this->f3->get('SESSION.csrf');
+        if($session_csrf)
+            return;
+        $this->f3->set('SESSION.csrf', bin2hex( random_bytes(24) ));
     }
 }
