@@ -2,6 +2,8 @@
 <h1>Sign Up</h1>
 
 <form action="/signup" method="POST">
+    <input type="text" name="csrf" id="csrf" value="<?php echo $SESSION['csrf']; ?>" hidden>
+    
     <label>Username (required): 
         <input type="text" name="username">
     </label><br><br>

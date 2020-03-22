@@ -5,11 +5,13 @@ class Main {
     protected $f3;
     protected $params;
     protected $request;
+    protected $csrf_fail_redirect;
 
-    public function __construct($f3, $params) {
+    public function __construct($f3, $params, $csrf_fail_redirect = '/') {
         $this->f3 = $f3;
         $this->params = $params;
         $this->request = $f3->get('REQUEST');
+        $this->csrf_fail_redirect = $csrf_fail_redirect;
     }
 
     public function beforeRoute() {
@@ -55,7 +57,7 @@ class Main {
             $this->f3->merge('session_errors', array(_(
                 'Form entry was not successful. Try again or contact site administrator.'
             )), true);
-            $this->reroute($this->f3->get('SERVER')['REQUEST_URI']);
+            $this->reroute($this->csrf_fail_redirect);
         }
     }
 
