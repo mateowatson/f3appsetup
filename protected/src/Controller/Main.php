@@ -5,12 +5,14 @@ class Main {
     protected $f3;
     protected $params;
     protected $request;
+    protected $db;
     protected $csrf_fail_redirect;
 
     public function __construct($f3, $params, $csrf_fail_redirect = '/') {
         $this->f3 = $f3;
         $this->params = $params;
         $this->request = $f3->get('REQUEST');
+        $this->db = $f3->get('DB');
         $this->csrf_fail_redirect = $csrf_fail_redirect;
     }
 

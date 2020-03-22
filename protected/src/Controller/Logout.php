@@ -1,7 +1,7 @@
 <?php
 namespace F3AppSetup\Controller;
 
-use F3AppSetup\Model\User;
+//use F3AppSetup\Model\User;
 
 class Logout extends Middleware\User {
     public function logout() {

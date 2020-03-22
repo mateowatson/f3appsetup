@@ -6,11 +6,13 @@ class User extends \F3AppSetup\Controller\Main {
         parent::beforeRoute();
         $username = $this->f3->get('SESSION.username');
         if(!$username)
-            return $this->f3->reroute('/login');
+            $this->reroute('/login');
         $db_users = new \DB\SQL\Mapper($this->f3->get('DB'), 'users');
         $session_user = $db_users->load(array('username=?', $username));
-        if(!$session_user)
-            return $this->f3->reroute('/login');
+        if(!$session_user) {
+            $this->f3->set('SESSION.username', '');
+            $this->reroute('/login');
+        }
     }
 
     public function afterRoute() {
