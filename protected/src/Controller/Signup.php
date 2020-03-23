@@ -2,6 +2,7 @@
 namespace F3AppSetup\Controller;
 
 use F3AppSetup\Model\User;
+use F3AppSetup\Domain\SMTP;
 
 class Signup extends Middleware\Guest {
     private $identifier;
@@ -32,20 +33,21 @@ class Signup extends Middleware\Guest {
 
     public function signup() {
         if(!$this->validateNewUser()) {
-            $this->f3->merge('session_errors', $user->validate_new_user_errors(), true);
+            $this->f3->merge('session_errors', $this->validate_new_user_errors, true);
             $this->reroute('/signup');
         }
 
         if(!$this->userCreate()) {
-            $this->f3->merge('session_errors', $this->user_errors, true);
+            $this->f3->merge('session_errors', $this->user_create_errors, true);
             $this->reroute('/signup');
         }
 
-        if($this->f3->get('USERSIGNUP') === 'email' || $this->request['email']) {
-            if(!$this->sendEmailVerificationCode()) {
-                $this->f3->merge('session_errors', $this->send_email_verification_code_errors, true);
+        if($this->f3->get('USERSIGNUP') === 'email' || $this->email) {
+            $smtp = new SMTP();
+            if(!$smtp->sendEmailVerificationCode($this->identifier, $this->email)) {
+                $this->f3->merge('session_errors', $smtp->getErrors(), true);
                 if(!$this->userErase()) {
-                     $this->f3->merge('session_errors', $this->user_erase_errors, true);
+                    $this->f3->merge('session_errors', $this->user_erase_errors, true);
                 }
                 $this->reroute('/signup');
             }
@@ -184,89 +186,8 @@ class Signup extends Middleware\Guest {
 
     public function userErase() {
         if($this->user->userErase($this->identifier)) return true;
-        array_push($this->validate_new_user_errors, _(
+        array_push($this->user_erase_errors, _(
             'Signed invalid user up and failed to delete the record.'
-        ));
-        return false;
-    }
-
-    public function sendEmailVerificationCode() {
-        if(!$this->f3->get('EMAIL_ENABLED')) {
-            array_push($this->send_email_verification_code_errors, _(
-                'Email not enabled on this site.'
-            ));
-            return false;
-        }
-        if($this->f3->get('SMTP_SCHEME') !== 'tls' ||
-            $this->f3->get('SMTP_SCHEME') !== 'ssl') {
-            $scheme = null;
-        } else {
-            $scheme = $this->f3->get('SMTP_SCHEME');
-        }
-
-        $host = $this->f3->get('SMTP_HOST');
-        $port = $this->f3->get('SMTP_PORT');
-        $username = $this->f3->get('SMTP_USERNAME');
-        $password = $this->f3->get('SMTP_PASSWORD');
-
-        $smtp = new \SMTP (
-            $host,
-            $port,
-            $scheme,
-            $username,
-            $password
-        );
-
-        $site_name = $this->f3->get('SITE_NAME');
-        $site_url = $this->f3->get('SITE_URL');
-
-        $smtp->set('From', '<'.$username.'>');
-        $smtp->set('To', '<'.$this->email.'>');
-        $smtp->set('Subject', $site_name.' email verification');
-
-        // creates 12 digit random string
-        $email_verification = bin2hex( random_bytes(6) );
-
-        $email_verification_link = $site_url.'/confirm?user='.
-        urlencode($this->identifier).'&token='.urlencode($email_verification);
-
-        if($this->f3->get('USERSIGNUP') === 'email') {
-            $message = <<<MESSAGE
-Hello $this->identifier,
-
-Confirm your account by going to this link:
-
-    $email_verification_link
-
-Sincerely,
-The $site_name Team
-MESSAGE;
-        } else {
-            $message = <<<MESSAGE2
-Hello $this->identifier,
-
-Confirm your email by going to this link:
-
-    $email_verification_link
-
-Without confirming your email, you will not be able to use Forgot Password.
-
-Sincerely,
-The $site_name Team
-MESSAGE2;
-        }
-
-        if($smtp->send($message)) {
-            $this->email_verification_hash = password_hash($email_verification, PASSWORD_DEFAULT);
-            $user = new \DB\SQL\Mapper($this->db, 'users');
-            $user->load(array('username=?', $this->identifier));
-            $user->email_verification_hash = $this->email_verification_hash;
-            $user->save();
-            return true;
-        }
-
-        array_push($this->send_email_verification_code_errors, _(
-            'Could not send email verification.'
         ));
         return false;
     }

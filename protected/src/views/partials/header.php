@@ -13,7 +13,7 @@
 <?php if($view_errors): ?>
 <div role="alert">
     <?php foreach($view_errors as $error): ?>
-    <p><?php echo $error; ?></p>
+    <p><?php echo $this->raw($error); ?></p>
     <?php endforeach; ?>
 </div>
 <?php endif; ?>
@@ -21,7 +21,7 @@
 <?php if($view_confirmations): ?>
 <div role="alert">
     <?php foreach($view_confirmations as $confirmation): ?>
-    <p><?php echo $confirmation; ?></p>
+    <p><?php echo $this->raw($confirmation); ?></p>
     <?php endforeach; ?>
 </div>
 <?php endif; ?>

@@ -4,6 +4,8 @@ namespace F3AppSetup\Controller;
 use F3AppSetup\Model\User;
 
 class Login extends Middleware\Guest {
+    private $identifier;
+    private $identifier_field;
     private $username;
     private $password;
     private $user;
@@ -12,9 +14,13 @@ class Login extends Middleware\Guest {
     public function __construct($f3, $params, $csrf_fail_redirect = '/') {
         parent::__construct($f3, $params, $csrf_fail_redirect);
         $this->csrf_fail_redirect = '/login';
+        $this->identifier = $this->f3->get('USERSIGNUP') === 'email' ?
+            $this->request['email'] : $this->request['username'];
+        $this->identifier_field = $this->f3->get('USERSIGNUP') === 'email' ?
+            _('email') : _('username');
         $this->username = $this->request['username'];
         $this->password = $this->request['password'];
-        $this->email = $this->request['email'] ? $this->request['email'] : '';
+        $this->email = $this->request['email'];
         $this->user = new User();
     }
 
@@ -35,30 +41,45 @@ class Login extends Middleware\Guest {
     }
 
     public function submitLogin() {
-        if(!$this->username || !$this->password) {
+        if(!$this->identifier || !$this->password) {
             array_push($this->submit_login_errors, _(
-                'Username and password are required.'
+                ucwords($this->identifier_field) . 
+                ' and password are required.'
             ));
             return false;
         }
 
-        $this->user->load(array('username=?', $this->username));
+        $this->user->load(array('username=?', $this->identifier));
+
+        if(
+            $this->f3->get('USERSIGNUP') === 'email' &&
+            !$this->user->dry() &&
+            $this->user->email_verified === 0
+        ) {
+            $site_url = $this->f3->get('SITE_URL');
+            array_push($this->submit_login_errors, _(
+                "You must confirm your email address before logging in.
+                Check your email. If you are missing an email confirmation
+                message, go to <a href=\"$site_url/confirm\">$site_url/confirm</a>."
+            ));
+            return false;
+        }
 
         if($this->user->dry()) {
             array_push($this->submit_login_errors, _(
-                'The username and password you entered are incorrect.'
+                'The '.$this->identifier_field.' and password you entered are incorrect.'
             ));
             return false;
         }
 
         if(!password_verify($this->password, $this->user->password)) {
             array_push($this->submit_login_errors, _(
-                'The username and password you entered are incorrect.'
+                'The '.$this->identifier_field.' and password you entered are incorrect.'
             ));
             return false;
         }
 
-        $this->f3->set('SESSION.username', $this->username);
+        $this->f3->set('SESSION.username', $this->identifier);
         return true;
     }
 }

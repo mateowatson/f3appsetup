@@ -30,4 +30,12 @@ class User extends Mapper {
         $this->load(array('username = ?', $username));
         return $this->dry() ? false : true;
     }
+
+    public function updateEmailVerificationHash($username, $email_verification_hash) {
+        if(!$this->userExists($username)) return false;
+        $this->load(array('username=?', $username));
+        $this->email_verification_hash = $email_verification_hash;
+        $this->save();
+        return true;
+    }
 }
