@@ -24,7 +24,7 @@ class Login extends Middleware\Guest {
 
     public function login() {
         if(!$this->submitLogin()) {
-            $this->f3->merge('session_errors', $this->submit_login_errors(), true);
+            $this->f3->merge('session_errors', $this->submit_login_errors, true);
             $this->reroute('/login');
         }
 

@@ -4,6 +4,7 @@ namespace F3AppSetup\Controller;
 use F3AppSetup\Model\User;
 
 class Signup extends Middleware\Guest {
+    private $identifier;
     private $username;
     private $password;
     private $email;
@@ -17,9 +18,11 @@ class Signup extends Middleware\Guest {
     public function __construct($f3, $params, $csrf_fail_redirect = '/') {
         parent::__construct($f3, $params, $csrf_fail_redirect);
         $this->csrf_fail_redirect = '/signup';
+        $this->identifier = $this->f3->get('USERSIGNUP') === 'email' ?
+            $this->request['email'] : $this->request['username'];
         $this->username = $this->request['username'];
         $this->password = $this->request['password'];
-        $this->email = $this->request['email'] ? $this->request['email'] : '';
+        $this->email = $this->request['email'];
         $this->user = new User();
     }
 
@@ -54,6 +57,10 @@ class Signup extends Middleware\Guest {
         $this->reroute('/login');
     }
 
+    public function getIdentifier() {
+        return $this->identifier;
+    }
+
     public function getUsername() {
         return $this->username;
     }
@@ -67,21 +74,57 @@ class Signup extends Middleware\Guest {
     }
 
     public function validateNewUser() {
-        $is_email_required = $this->f3->get('USERSIGNUP') === 'email'
-            ? true : false;
+        $this->validatePassword();
+        $this->validateUsername();
+        $this->validateEmail();
+
+        if($this->f3->get('USERSIGNUP') === 'email') {
+            $this->validateNewSignupEmailUser();
+        } else if($this->f3->get('USERSIGNUP') === 'anonymous') {
+            $this->validateNewSignupAnonymousUser();
+        } else if($this->f3->get('USERSIGNUP') === 'optional') {
+            $this->validateNewSignupOptionalUser();
+        }
+
+        
+        if(count($this->validate_new_user_errors))
+            return false;
+        return true;
+    }
+
+    public function validateNewSignupEmailUser() {
+        if(!$this->email) {
+            array_push($this->validate_new_user_errors, _(
+                'An email address is required for signing up.'
+            ));
+        }
+        if($this->user->userExists($this->email) !== false) {
+            array_push($this->validate_new_user_errors, _(
+                'The email '.$this->email.' is already taken.'
+            ));
+        }
+    }
+
+    public function validateNewSignupOptionalUser() {
         if(!$this->username) {
             array_push($this->validate_new_user_errors, _(
                 'A username is required for signing up.'
             ));
         }
-        if(!$this->password) {
+        if($this->email) {
+            $this->validateEmail();
+        }
+        if($this->user->userExists($this->username) !== false) {
             array_push($this->validate_new_user_errors, _(
-                'A password is required for signing up.'
+                'The username '.$this->username.' is already taken.'
             ));
         }
-        if($is_email_required && !$this->email) {
+    }
+
+    public function validateNewSignupAnonymousUser() {
+        if(!$this->username) {
             array_push($this->validate_new_user_errors, _(
-                'An email address is required for signing up.'
+                'A username is required for signing up.'
             ));
         }
         if($this->user->userExists($this->username) !== false) {
@@ -89,6 +132,10 @@ class Signup extends Middleware\Guest {
                 'The username '.$this->username.' is already taken.'
             ));
         }
+        
+    }
+
+    public function validateUsername() {
         if($this->username && !ctype_alnum($this->username)) {
             array_push($this->validate_new_user_errors, _(
                 'The username must use only alphanumeric characters. You provided '.$username.'.'
@@ -97,6 +144,14 @@ class Signup extends Middleware\Guest {
         if($this->username && strlen($this->username) > 25) {
             array_push($this->validate_new_user_errors, _(
                 'The username must not be more than 25 characters long.'
+            ));
+        }
+    }
+
+    public function validatePassword() {
+        if(!$this->password) {
+            array_push($this->validate_new_user_errors, _(
+                'A password is required for signing up.'
             ));
         }
         if($this->password && strlen($this->password) > 75) {
@@ -109,15 +164,14 @@ class Signup extends Middleware\Guest {
                 'The password must be at least 8 characters long.'
             ));
         }
-        if($this->email &&
-            filter_var($this->email, FILTER_VALIDATE_EMAIL) === FALSE) {
+    }
+
+    public function validateEmail() {
+        if($this->email && filter_var($this->email, FILTER_VALIDATE_EMAIL) === FALSE) {
             array_push($this->validate_new_user_errors, _(
                 'Not a valid email address.'
             ));
         }
-        if(count($this->validate_new_user_errors))
-            return false;
-        return true;
     }
 
     public function userCreate() {
@@ -129,7 +183,7 @@ class Signup extends Middleware\Guest {
     }
 
     public function userErase() {
-        if($this->user->userErase($this->username)) return true;
+        if($this->user->userErase($this->identifier)) return true;
         array_push($this->validate_new_user_errors, _(
             'Signed invalid user up and failed to delete the record.'
         ));
@@ -138,7 +192,7 @@ class Signup extends Middleware\Guest {
 
     public function sendEmailVerificationCode() {
         if(!$this->f3->get('EMAIL_ENABLED')) {
-            array_push($this->validate_new_user_errors, _(
+            array_push($this->send_email_verification_code_errors, _(
                 'Email not enabled on this site.'
             ));
             return false;
@@ -173,30 +227,39 @@ class Signup extends Middleware\Guest {
         // creates 12 digit random string
         $email_verification = bin2hex( random_bytes(6) );
 
-        $message = <<<MESSAGE
-Hello $this->username,
+        $email_verification_link = $site_url.'/confirm?user='.
+        urlencode($this->identifier).'&token='.urlencode($email_verification);
 
-Your email verification code is:
-    
-    $email_verification
+        if($this->f3->get('USERSIGNUP') === 'email') {
+            $message = <<<MESSAGE
+Hello $this->identifier,
 
-Log in at $site_url/login with the username
+Confirm your account by going to this link:
 
-    $this->username
-
-and the password you signed up with.
-
-Go to $site_url/verify-email and enter the verification code. This will allow
-you to reset your password if you ever forget it.
+    $email_verification_link
 
 Sincerely,
 The $site_name Team
 MESSAGE;
+        } else {
+            $message = <<<MESSAGE2
+Hello $this->identifier,
+
+Confirm your email by going to this link:
+
+    $email_verification_link
+
+Without confirming your email, you will not be able to use Forgot Password.
+
+Sincerely,
+The $site_name Team
+MESSAGE2;
+        }
 
         if($smtp->send($message)) {
             $this->email_verification_hash = password_hash($email_verification, PASSWORD_DEFAULT);
             $user = new \DB\SQL\Mapper($this->db, 'users');
-            $user->load(array('username=?', $this->username));
+            $user->load(array('username=?', $this->identifier));
             $user->email_verification_hash = $this->email_verification_hash;
             $user->save();
             return true;

@@ -3,20 +3,22 @@
 
 <form action="/signup" method="POST">
     <input type="text" name="csrf" id="csrf" value="<?php echo $SESSION['csrf']; ?>" hidden>
-    
+
+    <?php if($USERSIGNUP === 'email'): ?>
+        <label>Email (required): 
+            <input type="email" name="email">
+        </label><br><br>
+    <?php else: ?>
     <label>Username (required): 
         <input type="text" name="username">
     </label><br><br>
+    <?php endif; ?>
 
     <?php if($USERSIGNUP === 'optional'): ?>
         <label>Email (optional): 
             <input type="email" name="email">
             <br>
             Necessary for password recovery.
-        </label><br><br>
-    <?php elseif($USERSIGNUP === 'email'): ?>
-        <label>Email (required): 
-            <input type="email" name="email">
         </label><br><br>
     <?php endif; ?>
 

@@ -10,9 +10,9 @@ class User extends Mapper {
     }
 
     public function userCreate(Signup $signup) {
-        if($this->userExists($signup->getUsername())) return false;
+        if($this->userExists($signup->getIdentifier())) return false;
         $this->reset();
-        $this->username = $signup->getUsername();
+        $this->username = $signup->getIdentifier();
         $this->password = password_hash($signup->getPassword(), PASSWORD_DEFAULT);
         $this->email = $signup->getEmail();
         $this->save();
