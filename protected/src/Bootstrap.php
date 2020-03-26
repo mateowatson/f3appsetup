@@ -26,7 +26,13 @@ $f3->set('DB', new \DB\SQL(
         SET NAMES utf8mb4;
     ']
 ));
-// Initiate session using sessions sql table, store to global f3 variable 'CSRF'
+// Initiate session using sessions sql table, store to global f3 variable 'CSRF',
+// although this f3 variable is not currently being used in this boilerplate,
+// because it is tied to the session AND the request, meaning if you open a new
+// tab, your csrf token in the previous tab is obsolete. Which is annoying,
+// although more secure. Instead we create a SESSION.csrf variable in the Main
+// Controller class that is tied only to the session. You may want to use CSRF,
+// though, if you need to tie a csrf token to each request.
 new \DB\SQL\Session($f3->get('DB'), 'sessions', TRUE, NULL, 'CSRF');
 // Autoload views templates
 $f3->set('UI', ROOT_DIR . '/src/views/');
