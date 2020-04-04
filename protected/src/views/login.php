@@ -18,6 +18,10 @@
         <input type="password" name="password">
     </label><br><br>
 
-    <input type="submit" name="submit" value="Log In">
+    <input type="submit" name="submit" value="Log In"><br><br>
+
+    <?php if($EMAIL_ENABLED): ?>
+    <a href="<?php echo $SITE_URL; ?>/forgot-password">Forgot Password?</a>
+    <?php endif; ?>
 </form>
 <?php require_once('partials/footer.php');
