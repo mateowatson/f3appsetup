@@ -2,6 +2,8 @@
 
 namespace F3AppSetup\Domain;
 
+use F3AppSetup\Model\User;
+
 class SMTP extends \SMTP {
     private $f3;
     private $email_enabled;
@@ -92,5 +94,46 @@ MESSAGE2;
             'Could not send email verification.'
         ));
         return false;
+    }
+
+    public function sendEmailWithResetOptions($email) {
+        $user_model = new User();
+        $users = $user_model->getUsersByEmail($email);
+        $usernames = array();
+        $password_reset_verification = bin2hex( random_bytes(6) );
+        $password_reset_verification_hash = password_hash($password_verification, PASSWORD_DEFAULT);
+        foreach ($users as $user) {
+            array_push($usernames, $user->username);
+            $user->password_reset_verification_hash = $password_reset_verification_hash;
+            $user->save();
+        }
+        if(count($usernames) > 1) {
+            $email_message = $this->getResetMessageForOneEmailManyUsers(
+                $usernames,
+                $email,
+                $password_reset_verification
+            );
+        } else if(count($usernames) === 1) {
+            $email_message = $this->getResetMessageForOneEmailOnrUser(
+                $usernames,
+                $email,
+                $password_reset_verification
+            );
+        }
+
+        $site_name = $this->f3->get('SITE_NAME');
+        $site_url = $this->f3->get('SITE_URL');
+
+        $this->set('From', '<'.$this->user.'>');
+        $this->set('To', '<'.$email.'>');
+        $this->set('Subject', $site_name.' email verification');
+    }
+
+    public function getResetMessageForOneEmailManyUsers(
+        $usernames,
+        $email,
+        $password_reset_verification
+    ) {
+
     }
 }
