@@ -97,6 +97,8 @@ MESSAGE2;
     }
 
     public function sendEmailWithResetOptions($email) {
+        $site_name = $this->f3->get('SITE_NAME');
+        $site_url = $this->f3->get('SITE_URL');
         $user_model = new User();
         $users = $user_model->getUsersByEmail($email);
         $usernames = array();
@@ -114,11 +116,17 @@ MESSAGE2;
                 $password_reset_verification
             );
         } else if(count($usernames) === 1) {
-            $email_message = $this->getResetMessageForOneEmailOnrUser(
+            $email_message = $this->getResetMessageForOneEmailOneUser(
                 $usernames,
                 $email,
                 $password_reset_verification
             );
+        }
+        if(!$email_message) {
+            array_push($this->errors, _(
+                'Could not generate email message. No message sent.'
+            ));
+            return false;
         }
 
         $site_name = $this->f3->get('SITE_NAME');
@@ -126,7 +134,16 @@ MESSAGE2;
 
         $this->set('From', '<'.$this->user.'>');
         $this->set('To', '<'.$email.'>');
-        $this->set('Subject', $site_name.' email verification');
+        $this->set('Subject', $site_name.' password reset verification');
+
+        if($this->send($email_message)) {
+            return true;
+        }
+
+        array_push($this->errors, _(
+            'Could not send reset password email message.'
+        ));
+        return false;
     }
 
     public function getResetMessageForOneEmailManyUsers(
@@ -134,6 +151,54 @@ MESSAGE2;
         $email,
         $password_reset_verification
     ) {
+        $site_name = $this->f3->get('SITE_NAME');
+        $site_url = $this->f3->get('SITE_URL');
 
+        $userlist = '';
+        foreach ($usernames as $idx => $username) {
+            $userlist .= $username.' '.$site_url.'/reset-password/'.$username.
+                '/'.$password_reset_verification;
+            if($idx+1 !== count($usernames)) {
+                $userlist .= "\n\n";
+            }
+        }
+        if(!$userlist) return false;
+
+        return <<<MANYUSERS
+Hello $email!
+
+You may reset your password for one of the following accounts by clicking on the
+appropriate link below:
+
+$userlist
+
+Sincerely,
+The $site_name Team
+MANYUSERS;
+    }
+
+    public function getResetMessageForOneEmailOneUser(
+        $usernames,
+        $email,
+        $password_reset_verification
+    ) {
+        $site_name = $this->f3->get('SITE_NAME');
+        $site_url = $this->f3->get('SITE_URL');
+        $username = $usernames[0];
+        if(!$username) return false;
+
+        $pw_reset_url = $site_url.'/reset-password/'.$username.
+            '/'.$password_reset_verification;
+
+        return <<<MANYUSERS
+Hello $username!
+
+You may reset your password by going to the following URL:
+
+$pw_reset_url
+
+Sincerely,
+The $site_name Team
+MANYUSERS;
     }
 }

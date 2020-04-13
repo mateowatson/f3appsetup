@@ -80,6 +80,6 @@ $tz_mins -= $tz_hrs * 60;
 $tz_offset = sprintf('%+d:%02d', $tz_hrs*$tz_sgn, $tz_mins);
 $db = $f3->get('DB');
 $db->exec("SET time_zone='$tz_offset';");
-$f3->set('view_errors', json_decode($f3->get('SESSION.view_errors')) ? : array());
+//$f3->set('view_errors', json_decode($f3->get('SESSION.view_errors')) ? : array());
 // Run f3
 $f3->run();

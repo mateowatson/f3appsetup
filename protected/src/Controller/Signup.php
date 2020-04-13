@@ -142,7 +142,7 @@ class Signup extends Middleware\Guest {
         $validator = new Validator();
         $validator->validateUsername($this->username);
         $this->validate_new_user_errors = array_merge(
-            $this->validate_new_user_errors, $validator->getErrors
+            $this->validate_new_user_errors, $validator->getErrors()
         );
     }
 
@@ -150,7 +150,7 @@ class Signup extends Middleware\Guest {
         $validator = new Validator();
         $validator->validatePassword($this->password);
         $this->validate_new_user_errors = array_merge(
-            $this->validate_new_user_errors, $validator->getErrors
+            $this->validate_new_user_errors, $validator->getErrors()
         );
     }
 
@@ -158,7 +158,7 @@ class Signup extends Middleware\Guest {
         $validator = new Validator();
         $validator->validateEmail($this->email);
         $this->validate_new_user_errors = array_merge(
-            $this->validate_new_user_errors, $validator->getErrors
+            $this->validate_new_user_errors, $validator->getErrors()
         );
     }
 

@@ -20,6 +20,7 @@ class Validator {
                 'The username must not be more than 25 characters long.'
             ));
         }
+        return count($this->errors) ? false : true;
     }
 
     public function validatePassword($password) {
@@ -38,6 +39,7 @@ class Validator {
                 'The password must be at least 8 characters long.'
             ));
         }
+        return count($this->errors) ? false : true;
     }
 
     public function validateEmail($email) {
@@ -46,5 +48,6 @@ class Validator {
                 'Not a valid email address.'
             ));
         }
+        return count($this->errors) ? false : true;
     }
 }
