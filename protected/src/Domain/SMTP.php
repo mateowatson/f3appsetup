@@ -103,7 +103,7 @@ MESSAGE2;
         $users = $user_model->getUsersByEmail($email);
         $usernames = array();
         $password_reset_verification = bin2hex( random_bytes(6) );
-        $password_reset_verification_hash = password_hash($password_verification, PASSWORD_DEFAULT);
+        $password_reset_verification_hash = password_hash($password_reset_verification, PASSWORD_DEFAULT);
         foreach ($users as $user) {
             array_push($usernames, $user->username);
             $user->password_reset_verification_hash = $password_reset_verification_hash;
@@ -156,8 +156,8 @@ MESSAGE2;
 
         $userlist = '';
         foreach ($usernames as $idx => $username) {
-            $userlist .= $username.' '.$site_url.'/reset-password/'.$username.
-                '/'.$password_reset_verification;
+            $userlist .= $username.' '.$site_url.'/reset-password/'.urlencode($username).
+                '/'.urlencode($password_reset_verification);
             if($idx+1 !== count($usernames)) {
                 $userlist .= "\n\n";
             }
@@ -187,8 +187,8 @@ MANYUSERS;
         $username = $usernames[0];
         if(!$username) return false;
 
-        $pw_reset_url = $site_url.'/reset-password/'.$username.
-            '/'.$password_reset_verification;
+        $pw_reset_url = $site_url.'/reset-password/'.urlencode($username).
+            '/'.urlencode($password_reset_verification);
 
         return <<<MANYUSERS
 Hello $username!

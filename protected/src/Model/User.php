@@ -19,6 +19,13 @@ class User extends Mapper {
         return true;
     }
 
+    public function userResetPassword($password) {
+        $this->password = password_hash($password, PASSWORD_DEFAULT);
+        $this->password_reset_verification_hash = null;
+        $this->save();
+        return true;
+    }
+
     public function userErase($username) {
         $this->load(array('username = ?', $username));
         if($this->dry()) return false;
