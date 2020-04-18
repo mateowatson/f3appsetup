@@ -6,6 +6,7 @@ class Main {
     protected $params;
     protected $request;
     protected $db;
+    protected $session_user;
     protected $csrf_fail_redirect;
 
     public function __construct($f3, $params, $csrf_fail_redirect = '/') {

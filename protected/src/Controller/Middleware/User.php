@@ -13,6 +13,7 @@ class User extends \F3AppSetup\Controller\Main {
             $this->f3->set('SESSION.username', '');
             $this->reroute('/login');
         }
+        $this->session_user = $session_user;
     }
 
     public function afterRoute() {
